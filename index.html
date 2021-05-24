@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        <title>Piano MIDI Player</title>
+    </head>
+    <body>
+        <script src="./js/soundfont-player.min.js"></script>
+        <script type="module">
+import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/build/three.module.js';
+import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/controls/OrbitControls.js';
+import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/loaders/GLTFLoader.js';
+//import * as CapsuleBufferGeometry from './js/CapsuleBufferGeometry.js'
+import * as dat from "https://cdn.skypack.dev/dat.gui@0.7.7";
+import * as MidiPlayer from "./node_modules/midi-player-js/build/index.browser.js";
+
+console.log(Soundfont)
+var AudioContext = window.AudioContext || window.webkitAudioContext || false; 
+var ac = new AudioContext || new webkitAudioContext;
+var pianoPlayer = await Soundfont.instrument(ac, 'acoustic_grand_piano') 
+
+console.log(pianoPlayer)
+// Initialize player and register event handler
+var player = new MidiPlayer.default.Player(function(event) {
+	console.log(event);
+});
+
+const fileReader = new FileReader()
+var input = document.createElement("input")
+input.type = "file"
+input.onchange = ()=>{
+  if(!input.files.length){
+    alert('Please select a file!');
+      return;
+  }
+  let file = input.files[0];
+  let reader = new FileReader();
+  let ab = reader.readAsArrayBuffer(file);
+  reader.onload = (event)=>{
+    //pianoPlayer.listenToMidi(file)
+    //pianoPlayer.play()
+    console.log(pianoPlayer)
+    player.loadArrayBuffer(event.target.result)
+    player.play()
+  }
+}
+document.body.appendChild(input)
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color( 0xffffff );
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+const renderer = new THREE.WebGLRenderer();
+renderer.shadowMap.enabled = true;
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+
+const controls = new OrbitControls( camera, renderer.domElement );
+controls.update();
+
+
+//========================================================================================================
+//Personas/animaciones
+//========================================================================================================
+
+var loader = new GLTFLoader()
+loader.setPath('./models/')
+
+//Mujer
+loader.load('teclas separadas.gltf', function(object){
+    let Piano = object.scene
+    console.log(object)
+    Piano.position.set(0,0,0)
+    Piano.scale.set(2,2,2)
+    Piano.rotation.set(0,Math.PI/2,0)
+    scene.add(Piano)
+    
+})
+
+const clock = new THREE.Clock();
+
+//========================================================================================================
+//Playground
+//========================================================================================================
+
+
+//========================================================================================================
+//Lights
+//========================================================================================================
+
+var light = new THREE.AmbientLight( 0xffffff, 1 );
+scene.add(light)
+
+//========================================================================================================
+//Interactiveness
+//========================================================================================================
+
+
+//========================================================================================================
+//Rendering
+//========================================================================================================
+
+camera.position.set(28.238630194247968,12.424172422949814,4.857055215081596)
+camera.rotation.set(-1.7749009124891113, 1.300486193390684, 1.7823680802374888)
+camera.aspect = 2.1052631578947367
+
+const axesHelper = new THREE.AxesHelper(100)
+scene.add(axesHelper)
+
+const animate = function () {
+    let delta = clock.getDelta()
+    requestAnimationFrame( animate );
+    renderer.render( scene, camera );
+    controls.update()
+};
+
+animate();
+
+</script>
+    </body>
+</html>
