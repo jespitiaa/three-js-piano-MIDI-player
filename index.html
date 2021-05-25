@@ -13,6 +13,61 @@ import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/thre
 import * as dat from "https://cdn.skypack.dev/dat.gui@0.7.7";
 import * as MidiPlayer from "./node_modules/midi-player-js/build/index.browser.js";
 
+const scene = new THREE.Scene();
+scene.background = new THREE.Color( 0xffffff );
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+const renderer = new THREE.WebGLRenderer();
+renderer.shadowMap.enabled = true;
+renderer.setSize( window.innerWidth, window.innerHeight );
+
+const controls = new OrbitControls( camera, renderer.domElement );
+controls.update();
+
+//========================================================================================================
+//Personas/animaciones
+//========================================================================================================
+
+var notes = []
+var keyColor = undefined, bKColor = undefined
+
+var loader = new GLTFLoader()
+loader.setPath('./models/')
+
+//Mujer
+loader.load('teclas separadas.gltf', function(object){
+	let xScale = 2, yScale = 2, zScale = 2
+    let Piano = object.scene
+    Piano.position.set(0,0,0)
+    Piano.scale.set(xScale,yScale,zScale)
+    Piano.rotation.set(0,Math.PI/2,0)
+    scene.add(Piano)
+    
+	object.scene.traverse( function( child ) {
+		if(child.isMesh && child.userData && child.userData.name){
+			let noteName = child.userData.name
+			let noteInfo = noteName.split('.')
+			if(noteInfo[1]){
+				notes[parseInt(noteInfo[0])] = {
+					'name': noteInfo[1],
+					'x': child.position.x * xScale,
+					'y': child.position.y * yScale,
+					'z': child.position.z * zScale,
+					'ref' : child
+				}
+				if(bKColor==undefined && noteInfo[1].includes('#')){
+					bKColor = child.material.color.getHex()
+				}
+				else if (keyColor==undefined && !noteInfo[1].includes('#')){
+					keyColor = child.material.color.getHex()
+				}
+			}
+		}
+	})
+	console.log(notes)
+})
+
+
 console.log(Soundfont)
 var AudioContext = window.AudioContext || window.webkitAudioContext || false; 
 var ac = new AudioContext || new webkitAudioContext;
@@ -22,6 +77,32 @@ console.log(pianoPlayer)
 // Initialize player and register event handler
 var player = new MidiPlayer.default.Player(function(event) {
 	console.log(event);
+	if(event.name==='Note on'){
+		let note = notes[parseInt(event.noteNumber)]
+		console.log(notes[parseInt(event.noteNumber)])
+		note.ref.material.color.setHex(0xffff00)
+		note.ref.position.y = note.ref.position.y-0.03;
+		pianoPlayer.play(event.noteName, ac.currentTime, {gain:event.velocity/100});
+
+		note.ref.updateMatrix()
+	}
+	else if(event.name==='Note off'){
+		let note = notes[parseInt(event.noteNumber)]
+		console.log(notes[parseInt(event.noteNumber)])
+		let originalColor = (note.name.includes('#'))? bKColor:keyColor
+		note.ref.material.color.setHex(originalColor)
+		note.ref.position.y = note.ref.position.y+0.03;
+		note.ref.updateMatrix()
+	}
+	
+	else if(event.name==='Device Name'){
+		let note = notes[parseInt(event.noteNumber)]
+		console.log(notes[parseInt(event.noteNumber)])
+		let originalColor = (note.name.includes('#'))? bKColor:keyColor
+		note.ref.material.color.setHex(originalColor)
+		note.ref.position.y = note.ref.position.y+0.03;
+		note.ref.updateMatrix()
+	}
 });
 
 const fileReader = new FileReader()
@@ -44,37 +125,7 @@ input.onchange = ()=>{
   }
 }
 document.body.appendChild(input)
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color( 0xffffff );
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
-const renderer = new THREE.WebGLRenderer();
-renderer.shadowMap.enabled = true;
-renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
-
-const controls = new OrbitControls( camera, renderer.domElement );
-controls.update();
-
-
-//========================================================================================================
-//Personas/animaciones
-//========================================================================================================
-
-var loader = new GLTFLoader()
-loader.setPath('./models/')
-
-//Mujer
-loader.load('teclas separadas.gltf', function(object){
-    let Piano = object.scene
-    console.log(object)
-    Piano.position.set(0,0,0)
-    Piano.scale.set(2,2,2)
-    Piano.rotation.set(0,Math.PI/2,0)
-    scene.add(Piano)
-    
-})
 
 const clock = new THREE.Clock();
 
