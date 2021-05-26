@@ -1,0 +1,284 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 4392,
+      "max": [
+        13.579580307006836,
+        1.0195000171661377,
+        -15.10295295715332
+      ],
+      "min": [
+        9.1890621185302734,
+        -8.0016441345214844,
+        -20.122919082641602
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 52704,
+      "componentType": 5126,
+      "count": 4392,
+      "max": [
+        0.99995076656341553,
+        0.99906539916992188,
+        0.9998859167098999
+      ],
+      "min": [
+        -0.99993991851806641,
+        -0.93879646062850952,
+        -0.99868655204772949
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 4392,
+      "max": [
+        0.99745267629623413,
+        0.99923807382583618,
+        0.99925500154495239,
+        1
+      ],
+      "min": [
+        -0.99504554271697998,
+        -0.9999854564666748,
+        -0.99985021352767944,
+        1
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4392,
+      "max": [
+        0.99793499708175659,
+        0.9999079704284668
+      ],
+      "min": [
+        2.3000000510364771e-05,
+        0.0001230000052601099
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 23706,
+      "max": [
+        4391
+      ],
+      "min": [
+        0
+      ],
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "thesidekick (https://sketchfab.com/thesidekick)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/male-hand-26b30d91fa114254a8defeca49042434",
+      "title": "Male Hand"
+    },
+    "generator": "Sketchfab-6.70.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 94824,
+      "byteOffset": 0,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35136,
+      "byteOffset": 94824,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 105408,
+      "byteOffset": 129960,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 70272,
+      "byteOffset": 235368,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 305640,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/Male_hand_40plus_baseColor.jpeg"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "emissiveFactor": [
+        0.32007575757575757,
+        0.32007575757575757,
+        0.32007575757575757
+      ],
+      "emissiveTexture": {
+        "index": 0,
+        "texCoord": 0
+      },
+      "name": "Male_hand_40plus",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.75928030303030303,
+          0.75928030303030303,
+          0.75928030303030303,
+          1
+        ],
+        "baseColorTexture": {
+          "index": 0,
+          "texCoord": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 1
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Male_hand_40plus_Male_hand_40plus_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3
+          },
+          "indices": 4,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "name": "RootNode (gltf orientation matrix)",
+      "rotation": [
+        -0.70710678118654746,
+        -0,
+        -0,
+        0.70710678118654757
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "name": "RootNode (model correction matrix)"
+    },
+    {
+      "children": [
+        3
+      ],
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "name": "Male_hand_40plus.fbx"
+    },
+    {
+      "children": [
+        4
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        5
+      ],
+      "matrix": [
+        -57.075630309643735,
+        -7.5261964786814488,
+        -81.766305965973316,
+        0,
+        -27.345069133414128,
+        95.637167686681238,
+        10.284834713283802,
+        0,
+        77.424928186906612,
+        28.229189286862312,
+        -56.643564219237263,
+        0,
+        1996.913330078125,
+        1403.3663330078125,
+        -38.929176330566406,
+        1
+      ],
+      "name": "Male_hand_40plus"
+    },
+    {
+      "mesh": 0,
+      "name": "Male_hand_40plus_Male_hand_40plus_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "OSG_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ]
+}
+
