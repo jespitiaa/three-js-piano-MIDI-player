@@ -94,15 +94,6 @@ var player = new MidiPlayer.default.Player(function(event) {
 		note.ref.position.y = note.ref.position.y+0.03;
 		note.ref.updateMatrix()
 	}
-	
-	else if(event.name==='Device Name'){
-		let note = notes[parseInt(event.noteNumber)]
-		console.log(notes[parseInt(event.noteNumber)])
-		let originalColor = (note.name.includes('#'))? bKColor:keyColor
-		note.ref.material.color.setHex(originalColor)
-		note.ref.position.y = note.ref.position.y+0.03;
-		note.ref.updateMatrix()
-	}
 });
 
 const fileReader = new FileReader()
