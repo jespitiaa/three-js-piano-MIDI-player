@@ -2,9 +2,57 @@
 <html>
 	<head>
         <title>Piano MIDI Player</title>
+		<style>
+			.button,button{
+				display: inline-block;
+				height: 38px;
+				padding: 0 30px;
+				color: #555;
+				text-align: center;
+				font-size: 11px;
+				font-weight: 600;
+				line-height: 38px;
+				letter-spacing: .1rem;
+				text-transform: uppercase;
+				text-decoration: none;
+				white-space: nowrap;
+				background-color: transparent;
+				border-radius: 4px;
+				border: 1px solid #bbb;
+				cursor: pointer;
+				box-sizing: border-box; 
+			}
+			.button:hover,button:hover,.button:focus,button:focus{
+				color: #333;
+				border-color: #888;
+				outline: 0; 
+			}
+			.button.button-primary,
+			button.button-primary{
+				color: #FFF;
+				background-color: #33C3F0;
+				border-color: #33C3F0; 
+			}
+			.button.button-primary:hover,
+			button.button-primary:hover,
+			.button.button-primary:focus,
+			button.button-primary:focus{
+				color: #FFF;
+				background-color: #1EAEDB;
+				border-color: #1EAEDB; 
+			}
+		</style>
     </head>
     <body>
         <script src="./js/soundfont-player.min.js"></script>
+		<!--
+		<p id="select-file" style="display: block;">
+			<input type="file" onchange="loadFile()" onclick="player.stop()">
+		</p>
+		-->
+		<div style="border:1px solid #ccc;margin-bottom:12px;background:#f7f7f7;">
+			<div id="play-bar" style="height:20px;background:#33C3F0;width:0%;"></div>
+		</div>
         <script type="module">
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/build/three.module.js';
 import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/controls/OrbitControls.js';
@@ -13,16 +61,91 @@ import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/thre
 import * as dat from "https://cdn.skypack.dev/dat.gui@0.7.7";
 import * as MidiPlayer from "./node_modules/midi-player-js/build/index.browser.js";
 
+import { Water } from './js/objects/Water.js';
+import { Sky } from './js/objects/Sky.js';
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xffffff );
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 const renderer = new THREE.WebGLRenderer();
 renderer.shadowMap.enabled = true;
-renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setSize( window.innerWidth*0.8, window.innerHeight*0.8 );
 
 const controls = new OrbitControls( camera, renderer.domElement );
 controls.update();
+
+//========================================================================================================
+//Escenario
+//========================================================================================================
+
+let water, sun;
+sun = new THREE.Vector3();
+// Water
+const waterGeometry = new THREE.PlaneGeometry( 10000, 10000 );
+water = new Water(
+	waterGeometry,
+	{
+		textureWidth: 512,
+		textureHeight: 512,
+		waterNormals: new THREE.TextureLoader().load( 'img/waternormals.jpg', function ( texture ) {
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+		} ),
+		sunDirection: new THREE.Vector3(),
+		sunColor: 0xffffff,
+		waterColor: 0x001e0f,
+		distortionScale: 3.7,
+		fog: scene.fog !== undefined
+	}
+);
+water.rotation.x = - Math.PI / 2;
+scene.add( water );
+
+// Skybox
+const sky = new Sky();
+sky.scale.setScalar( 10000 );
+scene.add( sky );
+const skyUniforms = sky.material.uniforms;
+skyUniforms[ 'turbidity' ].value = 0;
+skyUniforms[ 'rayleigh' ].value = 1;
+skyUniforms[ 'mieCoefficient' ].value = 1;
+skyUniforms[ 'mieDirectionalG' ].value = 0.8;
+
+const parameters = {
+	elevation: 2,
+	azimuth: 180
+};
+
+const pmremGenerator = new THREE.PMREMGenerator( renderer );
+
+function updateSun() {
+	const phi = THREE.MathUtils.degToRad( 90 - parameters.elevation );
+	const theta = THREE.MathUtils.degToRad( parameters.azimuth );
+	sun.setFromSphericalCoords( 1, phi, theta );
+	sky.material.uniforms[ 'sunPosition' ].value.copy( sun );
+	water.material.uniforms[ 'sunDirection' ].value.copy( sun ).normalize();
+	scene.environment = pmremGenerator.fromScene( sky ).texture;
+}
+
+updateSun();
+
+//Superficie
+const loader1 = new THREE.TextureLoader()
+loader1.crossOrigin = ""
+const radiusTop = 15, radiusBottom = 15, height = 4, radialSegments = 20;  
+
+const geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, radialSegments);
+const woodTextureURL = "./img/dock-wood.jpg"
+const woodTexture = loader1.load(woodTextureURL)
+woodTexture.repeat.set(3,3);
+woodTexture.wrapS = THREE.MirroredRepeatWrapping
+woodTexture.wrapT = THREE.MirroredRepeatWrapping
+const woodenMat = new THREE.MeshStandardMaterial({ map: woodTexture, })
+const pillar = new THREE.Mesh(geometry, woodenMat)
+pillar.position.set(0,height/2,0)
+scene.add(pillar)
+
+
 
 //========================================================================================================
 //Personas/animaciones
@@ -33,12 +156,44 @@ var keyColor = undefined, bKColor = undefined
 
 var loader = new GLTFLoader()
 loader.setPath('./models/')
+var Mano, ManoI;
 
-//Mujer
+//Mano
+loader.load('mano.gltf', function(object){
+	let xScale = 0.2, yScale = 0.2, zScale = 0.2
+    Mano = object.scene
+    Mano.position.set(7,height+4.3,-1)
+    Mano.scale.set(xScale,yScale,zScale)
+    scene.add(Mano)
+	//Mano.visible = false;
+	Mano.traverse(function(object){
+		console.log(object)
+	})
+    let helper = new THREE.SkeletonHelper( Mano );
+	helper.material.linewidth = 5;
+	helper.visible = true;
+	scene.add(helper);
+	console.log(Mano)
+})
+//Mano
+loader.load('mano_izq.gltf', function(object){
+	let xScale = 0.2, yScale = 0.2, zScale = 0.2
+    ManoI = object.scene
+    ManoI.position.set(7,height+4.3,1)
+    ManoI.scale.set(xScale,yScale,zScale)
+    scene.add(ManoI)
+	//ManoI.visible = false;
+	ManoI.traverse(function(object){
+		console.log(object)
+	})
+})
+
+var originalY = height, originalYB = height;
+//Piano
 loader.load('teclas separadas.gltf', function(object){
 	let xScale = 2, yScale = 2, zScale = 2
     let Piano = object.scene
-    Piano.position.set(0,0,0)
+    Piano.position.set(0,height,0)
     Piano.scale.set(xScale,yScale,zScale)
     Piano.rotation.set(0,Math.PI/2,0)
     scene.add(Piano)
@@ -57,9 +212,11 @@ loader.load('teclas separadas.gltf', function(object){
 				}
 				if(bKColor==undefined && noteInfo[1].includes('#')){
 					bKColor = child.material.color.getHex()
+					originalYB = child.position.y
 				}
 				else if (keyColor==undefined && !noteInfo[1].includes('#')){
 					keyColor = child.material.color.getHex()
+					originalY = child.position.y
 				}
 			}
 		}
@@ -76,6 +233,8 @@ var pianoPlayer = await Soundfont.instrument(ac, 'acoustic_grand_piano')
 console.log(pianoPlayer)
 // Initialize player and register event handler
 var player = new MidiPlayer.default.Player(function(event) {
+	
+	document.getElementById('play-bar').style.width = 100 - player.getSongPercentRemaining() + '%';
 	console.log(event);
 	if(event.name==='Note on'){
 		let note = notes[parseInt(event.noteNumber)]
@@ -83,7 +242,9 @@ var player = new MidiPlayer.default.Player(function(event) {
 		note.ref.material.color.setHex(0xffff00)
 		note.ref.position.y = note.ref.position.y-0.03;
 		pianoPlayer.play(event.noteName, ac.currentTime, {gain:event.velocity/100});
-
+		Mano.position.set(4-note.ref.position.z, height+4.3, -note.ref.position.x)
+		Mano.visible = true
+		Mano.updateMatrix()
 		note.ref.updateMatrix()
 	}
 	else if(event.name==='Note off'){
@@ -92,9 +253,38 @@ var player = new MidiPlayer.default.Player(function(event) {
 		let originalColor = (note.name.includes('#'))? bKColor:keyColor
 		note.ref.material.color.setHex(originalColor)
 		note.ref.position.y = note.ref.position.y+0.03;
+		//Mano.visible = false
+		//Mano.updateMatrix()
 		note.ref.updateMatrix()
 	}
 });
+
+var play = function() {
+	if(player.getFilesize()===0)
+		alert("No MIDI file has been loaded")
+	else{
+		player.play();
+		document.getElementById('play-button').innerHTML = 'Pause';
+	}
+}
+
+var pause = function() {
+	player.pause();
+	document.getElementById('play-button').innerHTML = 'Play';
+}
+
+var stop = function() {
+	player.stop();
+	document.getElementById('play-button').innerHTML = 'Play';
+	for (let note of notes) {
+		console.log(note)
+		note.ref.material.color.setHex((note.name.includes('#'))?bKColor:keyColor)
+		note.ref.updateMatrix()
+		note.ref.position.y = (note.name.includes('#'))?originalYB:originalY
+		Mano.position.set(7,height+4.3,-1)
+		ManoI.position.set(7,height+4.3,1)
+	}
+}
 
 const fileReader = new FileReader()
 var input = document.createElement("input")
@@ -112,9 +302,28 @@ input.onchange = ()=>{
     //pianoPlayer.play()
     console.log(pianoPlayer)
     player.loadArrayBuffer(event.target.result)
-    player.play()
   }
 }
+input.style='display: block;'
+
+var playBtn = document.createElement("button")
+playBtn.className = "button button-primary"
+playBtn.innerText="Play"
+playBtn.id = "play-button"
+playBtn.onclick = (evt)=>{
+	evt.preventDefault()
+	player.isPlaying() ? pause() : play();
+}
+
+var stopBtn = document.createElement("button")
+stopBtn.className = "button"
+stopBtn.innerText="Stop"
+stopBtn.onclick = (evt)=>{
+	evt.preventDefault()
+	stop()
+}
+document.body.appendChild(playBtn)
+document.body.appendChild(stopBtn)
 document.body.appendChild(input)
 document.body.appendChild( renderer.domElement );
 
