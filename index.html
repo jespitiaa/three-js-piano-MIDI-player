@@ -45,11 +45,6 @@
     </head>
     <body>
         <script src="./js/soundfont-player.min.js"></script>
-		<!--
-		<p id="select-file" style="display: block;">
-			<input type="file" onchange="loadFile()" onclick="player.stop()">
-		</p>
-		-->
 		<div style="border:1px solid #ccc;margin-bottom:12px;background:#f7f7f7;">
 			<div id="play-bar" style="height:20px;background:#33C3F0;width:0%;"></div>
 		</div>
@@ -229,6 +224,7 @@ console.log(Soundfont)
 var AudioContext = window.AudioContext || window.webkitAudioContext || false; 
 var ac = new AudioContext || new webkitAudioContext;
 var pianoPlayer = await Soundfont.instrument(ac, 'acoustic_grand_piano') 
+var curNotes = {}
 
 console.log(pianoPlayer)
 // Initialize player and register event handler
@@ -236,26 +232,40 @@ var player = new MidiPlayer.default.Player(function(event) {
 	
 	document.getElementById('play-bar').style.width = 100 - player.getSongPercentRemaining() + '%';
 	console.log(event);
-	if(event.name==='Note on'){
-		let note = notes[parseInt(event.noteNumber)]
-		console.log(notes[parseInt(event.noteNumber)])
-		note.ref.material.color.setHex(0xffff00)
-		note.ref.position.y = note.ref.position.y-0.03;
-		pianoPlayer.play(event.noteName, ac.currentTime, {gain:event.velocity/100});
-		Mano.position.set(4-note.ref.position.z, height+4.3, -note.ref.position.x)
-		Mano.visible = true
-		Mano.updateMatrix()
-		note.ref.updateMatrix()
-	}
-	else if(event.name==='Note off'){
-		let note = notes[parseInt(event.noteNumber)]
-		console.log(notes[parseInt(event.noteNumber)])
-		let originalColor = (note.name.includes('#'))? bKColor:keyColor
-		note.ref.material.color.setHex(originalColor)
-		note.ref.position.y = note.ref.position.y+0.03;
-		//Mano.visible = false
-		//Mano.updateMatrix()
-		note.ref.updateMatrix()
+	if(event.noteNumber<=81){
+		if(event.name==='Note on'){
+			let note = notes[parseInt(event.noteNumber)]
+			console.log(notes[parseInt(event.noteNumber)])
+			curNotes[parseInt(event.noteNumber)] = note
+			note.ref.material.color.setHex(0xf4d088)
+			note.ref.position.y = (note.name.includes('#'))?originalYB-0.03:originalY-0.03
+			pianoPlayer.play(event.noteName, ac.currentTime, {gain:event.velocity/100});
+			let minPos = Math.min(...Object.keys(curNotes).map(s=>parseInt(s)))
+			let maxPos = Math.max(...Object.keys(curNotes).map(s=>parseInt(s)))
+			let leftMost = notes[minPos]
+			let rightMost = notes[maxPos]
+			Mano.position.set(4-rightMost.ref.position.z, height+4.3, -rightMost.ref.position.x)
+			ManoI.position.set(4-leftMost.ref.position.z, height+4.3, -leftMost.ref.position.x)
+			if(Object.keys(curNotes).length<2 || rightMost.ref.position.distanceTo(leftMost.ref.position)<0.6){
+				ManoI.visible = false
+			}else{
+				ManoI.visible = true
+			}
+			Mano.visible = true
+			Mano.updateMatrix()
+			note.ref.updateMatrix()
+		}
+		else if(event.name==='Note off'){
+			let note = notes[parseInt(event.noteNumber)]
+			console.log(notes[parseInt(event.noteNumber)])
+			let originalColor = (note.name.includes('#'))? bKColor:keyColor
+			note.ref.material.color.setHex(originalColor)
+			note.ref.position.y = (note.name.includes('#'))?originalYB:originalY;
+			delete curNotes[parseInt(event.noteNumber)]
+			//Mano.visible = false
+			//Mano.updateMatrix()
+			note.ref.updateMatrix()
+		}
 	}
 });
 
@@ -283,6 +293,7 @@ var stop = function() {
 		note.ref.position.y = (note.name.includes('#'))?originalYB:originalY
 		Mano.position.set(7,height+4.3,-1)
 		ManoI.position.set(7,height+4.3,1)
+		curNotes = {}
 	}
 }
 
@@ -330,21 +341,11 @@ document.body.appendChild( renderer.domElement );
 const clock = new THREE.Clock();
 
 //========================================================================================================
-//Playground
-//========================================================================================================
-
-
-//========================================================================================================
 //Lights
 //========================================================================================================
 
 var light = new THREE.AmbientLight( 0xffffff, 1 );
 scene.add(light)
-
-//========================================================================================================
-//Interactiveness
-//========================================================================================================
-
 
 //========================================================================================================
 //Rendering
@@ -361,7 +362,8 @@ const animate = function () {
     let delta = clock.getDelta()
     requestAnimationFrame( animate );
     renderer.render( scene, camera );
-    controls.update()
+	water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
+    controls.update()	
 };
 
 animate();
